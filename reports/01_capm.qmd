@@ -1,0 +1,215 @@
+---
+title: "Econometria Aplicada à Finanças"
+subtitle: "Modelo de Regressão Linear Simles - Estimação do CAPM"
+author: "Washington S. da Silva"
+lang: pt
+date: today
+format: 
+  html:
+    theme: cosmos
+    toc: true
+    number-sections: true
+    code-fold: true
+    self-contained: true
+execute:
+  echo: true
+  message: false
+  warning: false
+---
+
+# Carrega os Módulos Necessarios
+
+```{python}
+from pathlib import Path
+import numpy as np
+import pandas as pd 
+import seaborn as sns
+import matplotlib.pyplot as plt
+from scipy.stats import kurtosis, skew
+import statsmodels.api as sm
+```
+
+# Importação da Planilha de Dados
+
+Define o caminho relativo para a planilha Excel: 
+
+```{python}
+path_to_capm = Path("../data/raw/capm.xls")
+path_to_capm
+```
+
+Importa a planilha Excel:
+
+```{python}
+dados_capm = pd.read_excel(path_to_capm, engine='xlrd')
+```
+
+Exibe a estrutura dos dados:
+
+```{python}
+print(dados_capm.info())
+```
+
+Exibe as 5 primeiras e ultimas linhas dos dados:
+
+```{python}
+print(dados_capm)
+```
+
+
+# Preparação dos Dados
+
+Cálculo dos retornos compostos continuamente (logarítmicos). Os comandos a seguir também adicionam os retornos à data frame:
+
+```{python}
+dados_capm['ret_sp500'] = np.log(dados_capm['SANDP']).diff() * 100
+dados_capm['ret_ford'] = np.log(dados_capm['FORD']).diff() * 100
+dados_capm['ret_ge'] = np.log(dados_capm['GE']).diff() * 100
+dados_capm['ret_microsoft'] = np.log(dados_capm['MICROSOFT']).diff() * 100
+dados_capm['ret_oracle'] = np.log(dados_capm['ORACLE']).diff() * 100
+```
+
+Verifica a estrutura dos dados após o cálculo dos retornos:
+
+```{python}
+print(dados_capm)
+```
+
+Ajusta a série anual de rendimentos para base mensal:
+
+```{python}
+dados_capm['ustb3m'] = dados_capm['USTB3M'] / 12
+```
+
+
+Cálculo dos retornos excedentes: 
+
+```{python}
+dados_capm['retexc_sp500'] = dados_capm['ret_sp500'] - dados_capm['ustb3m']
+dados_capm['retexc_ford'] = dados_capm['ret_ford'] - dados_capm['ustb3m']
+dados_capm['retexc_ge'] = dados_capm['ret_ge'] - dados_capm['ustb3m']
+dados_capm['retexc_microsoft'] = dados_capm['ret_microsoft'] - dados_capm['ustb3m']
+dados_capm['retexc_oracle'] = dados_capm['ret_oracle'] - dados_capm['ustb3m']
+```
+
+Exibe a estrutura dos dados:
+
+```{python}
+print(dados_capm.info())
+```
+
+Exibe as 5 primeiras e ultimas linhas dos dados:
+
+```{python}
+print(dados_capm)
+```
+
+# Análise Exploratória de Dados
+
+## Estatísticas Descritivas dos Retornos Excedentes da Ford
+
+```{python}
+ford_stats = dados_capm['retexc_ford'].describe()
+ford_skew = skew(dados_capm['retexc_ford'].dropna())
+ford_kurt = kurtosis(dados_capm['retexc_ford'].dropna(), fisher=False)
+
+ford_summary = pd.Series({
+    'media': ford_stats['mean'],
+    'mediana': ford_stats['50%'],
+    'desvio_padrao': ford_stats['std'],
+    'minimo': ford_stats['min'],
+    'maximo': ford_stats['max'],
+    'curtose': ford_kurt,
+    'assimetria': ford_skew
+})
+
+print(ford_summary)
+```
+
+
+## Estatísticas Descritivas dos Retornos Excedentes do S&P 500
+
+```{python}
+sp500_stats = dados_capm['retexc_sp500'].describe()
+sp500_skew = skew(dados_capm['retexc_sp500'].dropna())
+sp500_kurt = kurtosis(dados_capm['retexc_sp500'].dropna(), fisher=False)
+
+sp500_summary = pd.Series({
+    'media': sp500_stats['mean'],
+    'mediana': sp500_stats['50%'],
+    'desvio_padrao': sp500_stats['std'],
+    'minimo': sp500_stats['min'],
+    'maximo': sp500_stats['max'],
+    'curtose': sp500_kurt,
+    'assimetria': sp500_skew
+})
+
+print(sp500_summary)
+```
+
+
+
+## Gráfico de Dispersão dos Retornos Excedentes da Ford vs. S&P 500
+
+```{python}
+sns.lmplot(x='retexc_sp500', y='retexc_ford', data=dados_capm, line_kws={'color': 'red'}, ci=None)
+plt.title('Retornos Excedentes da Ford vs. Retornos Excedentes do S&P 500')
+plt.xlabel('Retornos Excedentes do S&P 500 (%)')
+plt.ylabel('Retornos Excedentes da Ford (%)')
+plt.show()
+```
+
+
+# Preparação dos Dados para Estimação do CAPM
+
+```{python}
+X = dados_capm['retexc_sp500'].dropna()
+y = dados_capm['retexc_ford'].dropna()
+
+# Adiciona uma constante para o termo de interceptação
+X = sm.add_constant(X)
+```
+
+
+# Estimação do modelo CAPM
+
+```{python}
+capm_model = sm.OLS(y, X).fit()
+
+# Exibe os resultados da estimação
+print(capm_model.summary())
+```
+
+
+Intervalos de confiança para os parâmetros estimados: 
+
+```{python}
+print(capm_model.conf_int())
+```
+
+
+# Diagnóstico do Modelo via Simulação
+
+```{python}
+# Definindo a semente para reprodutibilidade
+np.random.seed(1234)
+
+# Simulação dos retornos excedentes da Ford com base no modelo estimado
+retexc_ford_sim = capm_model.params['const'] + capm_model.params['retexc_sp500'] * dados_capm['retexc_sp500'] + np.random.normal(0, capm_model.resid.std(), len(dados_capm))
+
+# Adiciona os retornos simulados ao DataFrame
+dados_capm['retexc_ford_sim'] = retexc_ford_sim
+```
+
+# Gráfico comparando as densidades dos retornos simulados e observados
+
+```{python}
+sns.kdeplot(dados_capm['retexc_ford_sim'].dropna(), color='red', label='Densidade dos Retornos Simulados')
+sns.kdeplot(dados_capm['retexc_ford'].dropna(), color='blue', label='Densidade dos Retornos Observados')
+plt.legend()
+plt.show()
+```
+
+
+
+
