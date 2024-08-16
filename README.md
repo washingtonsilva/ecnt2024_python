@@ -7,7 +7,9 @@
 
 - Esta versão foi criada usando o VS Code e Python 3.12.4.
 
-- É importante criar um ambiente virtual para instalar as dependências do projeto, sendo que o ambiente virtual foi criado com `pyenv`.
+- É importante criar um ambiente virtual para instalar as dependências do projeto, sendo que o ambiente virtual foi criado com `pyenv`. 
+
+- Para sistemas Windows, há recomendações para usar `conda` para criar um ambiente virtual.  
 
 - Para importar a planilha Excel com o Pandas foi necessário instalar o módulo xlrd no 
 ambiente virtual: 
