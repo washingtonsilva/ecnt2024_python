@@ -1,18 +1,20 @@
 ## Descrição
 
-- Projeto Python criado usando o IDE Positron, versão beta. 
+- Esse Projeto Python foi criado para a disciplina **Econometria Aplicada à Finanças** ofertada para o Mestrado Profissional em Administração do IFMG - Campus Formiga. 
 
-- O projeto foi criado para a disciplina Econometria Aplicada à Finanças ofertada para o Mestrado Profissional em Administração do IFMG - Campus Formiga. 
 
 ## Observações 
 
-1. Criar um ambiente virtual para instalar as dependências do projeto.
+- Esta versão foi criada usando o VS Code e Python 3.12.4.
 
-2. Para importar a planilha Excel foi necessário instalar: 
+- É importante criar um ambiente virtual para instalar as dependências do projeto, sendo que o ambiente virtual foi criado com `pyenv`.
+
+- Para importar a planilha Excel com o Pandas foi necessário instalar o módulo xlrd no 
+ambiente virtual: 
 
 - `pip install xlrd`
 
-2. Para gerar arquivos quarto html, é necessário instalar os pacotes: 
+2. Para gerar arquivos quarto html, foi necessário instalar os seguintes pacotes: 
 
 - `pip install pyyaml`
 - `pip install nbformat`
