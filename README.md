@@ -5,7 +5,7 @@
 
 ## Observações 
 
-- Esta versão foi criada usando o VS Code e Python 3.12.4.
+- Esta versão foi criada usando o VS Code e Python 3.12.4 em MacOS.
 
 - É importante criar um ambiente virtual para instalar as dependências do projeto, sendo que o ambiente virtual foi criado com `pyenv`. 
 

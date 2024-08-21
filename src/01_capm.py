@@ -1,37 +1,36 @@
-
-# Carrega os modulos necessarios
-from pathlib import Path
+# Importa os módulos necessários
 import numpy as np
-import pandas as pd 
+import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
-from scipy.stats import kurtosis, skew
 import statsmodels.api as sm
-
+from scipy.stats import kurtosis, skew
+from pathlib import Path
 
 # Define o caminho relativo para o arquivo Excel
 path_to_capm = Path("data/raw/capm.xls")
-path_to_capm
 
-# importa a planilha Excel
+# Importa a planilha Excel
 dados_capm = pd.read_excel(path_to_capm, engine='xlrd')
 
 # Exibe a estrutura dos dados
+print("Estrutura dos dados:")
 print(dados_capm.info())
 
-# Exibe as 5 primeiras e ultimas linhas dos dados
+# Exibe as 5 primeiras e últimas linhas dos dados
+print("Primeiras e últimas linhas dos dados:")
 print(dados_capm)
 
-# Cálculo dos retornos compostos continuamente (logarítmicos) e 
-# adiciona os retornos à data frame
+# Cálculo dos retornos compostos continuamente (logarítmicos) e adiciona os retornos ao DataFrame
 dados_capm['ret_sp500'] = np.log(dados_capm['SANDP']).diff() * 100
 dados_capm['ret_ford'] = np.log(dados_capm['FORD']).diff() * 100
 dados_capm['ret_ge'] = np.log(dados_capm['GE']).diff() * 100
 dados_capm['ret_microsoft'] = np.log(dados_capm['MICROSOFT']).diff() * 100
 dados_capm['ret_oracle'] = np.log(dados_capm['ORACLE']).diff() * 100
 
-# Verificando a estrutura dos dados após o cálculo dos retornos
-print(dados_capm)
+# Verifica a estrutura dos dados após o cálculo dos retornos
+print("Estrutura dos dados após o cálculo dos retornos:")
+print(dados_capm.info())
 
 # Ajusta a série anual de rendimentos para base mensal
 dados_capm['ustb3m'] = dados_capm['USTB3M'] / 12
@@ -43,10 +42,12 @@ dados_capm['retexc_ge'] = dados_capm['ret_ge'] - dados_capm['ustb3m']
 dados_capm['retexc_microsoft'] = dados_capm['ret_microsoft'] - dados_capm['ustb3m']
 dados_capm['retexc_oracle'] = dados_capm['ret_oracle'] - dados_capm['ustb3m']
 
-# Exibe a estrutura dos dados
+# Exibe a estrutura dos dados após o cálculo dos retornos excedentes
+print("Estrutura dos dados após o cálculo dos retornos excedentes:")
 print(dados_capm.info())
 
-# Exibe as 5 primeiras e ultimas linhas dos dados
+# Exibe as 5 primeiras e últimas linhas dos dados
+print("Primeiras e últimas linhas dos dados após o cálculo dos retornos excedentes:")
 print(dados_capm)
 
 # Estatísticas descritivas dos retornos excedentes da Ford
@@ -64,6 +65,7 @@ ford_summary = pd.Series({
     'assimetria': ford_skew
 })
 
+print("Estatísticas descritivas dos retornos excedentes da Ford:")
 print(ford_summary)
 
 # Estatísticas descritivas dos retornos excedentes do S&P 500
@@ -81,6 +83,7 @@ sp500_summary = pd.Series({
     'assimetria': sp500_skew
 })
 
+print("Estatísticas descritivas dos retornos excedentes do S&P 500:")
 print(sp500_summary)
 
 # Gráfico de dispersão dos retornos excedentes da Ford vs. S&P 500
@@ -101,9 +104,11 @@ X = sm.add_constant(X)
 capm_model = sm.OLS(y, X).fit()
 
 # Exibe os resultados da estimação
+print("Resultados da estimação do modelo CAPM:")
 print(capm_model.summary())
 
 # Intervalos de confiança para os parâmetros estimados
+print("Intervalos de confiança para os parâmetros estimados:")
 print(capm_model.conf_int())
 
 # Definindo a semente para reprodutibilidade
